@@ -1,4 +1,4 @@
-﻿program Wildberries;
+﻿program WbCrowlerUA;
 
 {$APPTYPE CONSOLE}
 {$R *.res}
