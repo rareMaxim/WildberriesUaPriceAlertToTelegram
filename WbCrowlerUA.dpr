@@ -5,6 +5,7 @@
 
 uses
   System.SysUtils,
+  TelegramBotApi.Client,
   WildBerries.Client,
   WildBerries.Types,
   WildBerries.DB in 'WildBerries.DB.pas' {DataModule1: TDataModule};
@@ -15,6 +16,7 @@ type
     fWb: TWildBerriesClient;
     fMenu: TwbMenuItems;
     FDB: TDataModule1;
+    fTg: TTelegramBotApi;
   protected
     procedure WriteMenu(ANodes: TArray<TwbMenuItem>; APrefixLength: Integer);
     procedure WritePrice(ANode: TwbMenuItem);
@@ -33,10 +35,13 @@ constructor TwbCore.Create;
 begin
   fWb := TWildBerriesClient.Create;
   FDB := TDataModule1.Create(nil);
+  fTg := TTelegramBotApi.Create;
+  fTg.BotToken := {$I token.inc};
 end;
 
 destructor TwbCore.Destroy;
 begin
+  fTg.Free;
   fWb.Free;
   FDB.Free;
   inherited;
