@@ -69,18 +69,7 @@ end;
 procedure TwbCore.ReportNewPrice(AProd: TwbProductItem; NewPrice, OldPrice: Integer);
 var
   lMsg: TtgMessageArgument;
-  lTgMsg: string;
-const
-  // Тип Бренд
-  // Старая цена:
-  // Новая цена:
-  // Ссылка
-  MSG = '%s %s' + #13#10 + //
-  // 'Старая цена: %f' + #13#10 + //
-  // 'Новая цена: %f' + #13#10 + //
-  // 'https://wildberries.ua/product?card=%d' + //
-    '';
-begin //
+begin
   lTgMsg := AProd.Name + ' <a href="' + fWb.GetProductImages(AProd)[0] + '">' + AProd.Brand + '</a>' + sLineBreak + //
     'Старая цена: ' + (OldPrice / 100).ToString + sLineBreak + //
     'Новая цена: ' + (NewPrice / 100).ToString + sLineBreak + //
@@ -137,7 +126,7 @@ begin
     begin
       FDB.UpdateProduct(lProduct);
     end;
- //   Sleep(1000);
+    // Sleep(1000);
   end;
 end;
 
