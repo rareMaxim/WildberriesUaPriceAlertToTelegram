@@ -16,7 +16,11 @@ type
     FDConnection1: TFDConnection;
     FDPhysSQLiteDriverLink1: TFDPhysSQLiteDriverLink;
   private
+
     { Private declarations }
+    fOnNewPrice: TProc<TwbProductItem, Integer, Integer>;
+  protected
+    procedure ReportNewPrice(AProd: TwbProductItem; NewPrice, OldPrice: Integer);
   public
     { Public declarations }
 
@@ -26,6 +30,7 @@ type
     procedure AddPrice(AProd: TwbProductItem);
     function LastPrice(AID: Integer): Integer;
     constructor Create(AOwner: TComponent); override;
+    property OnNewPrice: TProc<TwbProductItem, Integer, Integer> read fOnNewPrice write fOnNewPrice;
   end;
 
 var
@@ -142,6 +147,12 @@ begin
 
 end;
 
+procedure TDataModule1.ReportNewPrice(AProd: TwbProductItem; NewPrice, OldPrice: Integer);
+begin
+  if Assigned(fOnNewPrice) then
+    fOnNewPrice(AProd, NewPrice, OldPrice);
+end;
+
 procedure TDataModule1.UpdateProduct(AProd: TwbProductItem);
 var
   lIsAvaibleProduct: Boolean;
@@ -159,6 +170,7 @@ begin
     begin
       AddPrice(AProd);
       Writeln('НОВАЯ ЦЕНА: ' + AProd.Name + ' ' + AProd.Brand + ' ' + AProd.SalePriceU.ToString);
+      ReportNewPrice(AProd, AProd.SalePriceU, lLastPrice);
     end;
 end;
 

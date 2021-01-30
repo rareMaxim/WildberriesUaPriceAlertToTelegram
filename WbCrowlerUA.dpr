@@ -5,7 +5,12 @@
 
 uses
   System.SysUtils,
+  System.NetEncoding,
   TelegramBotApi.Client,
+  TelegramBotApi.Types,
+  TelegramBotApi.Types.Enums,
+  TelegramBotApi.Types.Request,
+
   WildBerries.Client,
   WildBerries.Types,
   WildBerries.DB in 'WildBerries.DB.pas' {DataModule1: TDataModule};
@@ -18,6 +23,7 @@ type
     FDB: TDataModule1;
     fTg: TTelegramBotApi;
   protected
+    procedure ReportNewPrice(AProd: TwbProductItem; NewPrice, OldPrice: Integer);
     procedure WriteMenu(ANodes: TArray<TwbMenuItem>; APrefixLength: Integer);
     procedure WritePrice(ANode: TwbMenuItem);
   public
@@ -35,8 +41,11 @@ constructor TwbCore.Create;
 begin
   fWb := TWildBerriesClient.Create;
   FDB := TDataModule1.Create(nil);
+  FDB.OnNewPrice := ReportNewPrice;
+
   fTg := TTelegramBotApi.Create;
   fTg.BotToken := {$I token.inc};
+  Writeln(fTg.GetMe.Result.Username);
 end;
 
 destructor TwbCore.Destroy;
@@ -55,6 +64,37 @@ end;
 procedure TwbCore.ReadConfig;
 begin
   fWb.GetConfiguration;
+end;
+
+procedure TwbCore.ReportNewPrice(AProd: TwbProductItem; NewPrice, OldPrice: Integer);
+var
+  lMsg: TtgMessageArgument;
+  lTgMsg: string;
+const
+  // Тип Бренд
+  // Старая цена:
+  // Новая цена:
+  // Ссылка
+  MSG = '%s %s' + #13#10 + //
+  // 'Старая цена: %f' + #13#10 + //
+  // 'Новая цена: %f' + #13#10 + //
+  // 'https://wildberries.ua/product?card=%d' + //
+    '';
+begin //
+  lTgMsg := AProd.Name + ' <a href="' + fWb.GetProductImages(AProd)[0] + '">' + AProd.Brand + '</a>' + sLineBreak + //
+    'Старая цена: ' + (OldPrice / 100).ToString + sLineBreak + //
+    'Новая цена: ' + (NewPrice / 100).ToString + sLineBreak + //
+    'https://wildberries.ua/product?card=' + AProd.ID.ToString + //
+  { } '';
+  lMsg := TtgMessageArgument.Create;
+  try
+    lMsg.ChatId := '@WildberriesUA';
+    lMsg.ParseMode := TtgParseMode.HTML;
+    lMsg.Text := lTgMsg;
+    fTg.SendMessage(lMsg);
+  finally
+    lMsg.Free;
+  end;
 end;
 
 procedure TwbCore.WriteMenu(ANodes: TArray<TwbMenuItem>; APrefixLength: Integer);
@@ -82,7 +122,11 @@ var
   lProduct: TwbProductItem;
   lFilters: TwbFilters;
   lCursor: Integer;
+const
+  FILTER = 'КроссовкиКедыОбувь';
 begin
+  if not FILTER.Contains(ANode.Name) then
+    Exit;
   lFilters := fWb.GetFilters(ANode).Data;
   lCursor := 0;
   while lCursor * 100 <= lFilters.Total do
@@ -93,7 +137,7 @@ begin
     begin
       FDB.UpdateProduct(lProduct);
     end;
-    // Sleep(500);
+ //   Sleep(1000);
   end;
 end;
 
@@ -103,9 +147,12 @@ var
 begin
   lWB := TwbCore.Create;
   try
-    lWB.ReadConfig;
-    lWB.OpenMenu;
-    lWB.WriteMenu(lWB.Menu, 0);
+    while True do
+    begin
+      lWB.ReadConfig;
+      lWB.OpenMenu;
+      lWB.WriteMenu(lWB.Menu, 0);
+    end;
   finally
     lWB.Free;
   end;

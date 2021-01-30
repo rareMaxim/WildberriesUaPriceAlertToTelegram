@@ -7,7 +7,7 @@
             <Dependencies/>
         </Projects>
         <Projects Include="WbCrowlerUA.dproj">
-            <Dependencies/>
+            <Dependencies>Wildberries\WildberriesAPI.dproj</Dependencies>
         </Projects>
     </ItemGroup>
     <ProjectExtensions>
@@ -26,13 +26,13 @@
     <Target Name="WildberriesAPI:Make">
         <MSBuild Projects="Wildberries\WildberriesAPI.dproj" Targets="Make"/>
     </Target>
-    <Target Name="WbCrowlerUA">
+    <Target Name="WbCrowlerUA" DependsOnTargets="WildberriesAPI">
         <MSBuild Projects="WbCrowlerUA.dproj"/>
     </Target>
-    <Target Name="WbCrowlerUA:Clean">
+    <Target Name="WbCrowlerUA:Clean" DependsOnTargets="WildberriesAPI:Clean">
         <MSBuild Projects="WbCrowlerUA.dproj" Targets="Clean"/>
     </Target>
-    <Target Name="WbCrowlerUA:Make">
+    <Target Name="WbCrowlerUA:Make" DependsOnTargets="WildberriesAPI:Make">
         <MSBuild Projects="WbCrowlerUA.dproj" Targets="Make"/>
     </Target>
     <Target Name="Build">
