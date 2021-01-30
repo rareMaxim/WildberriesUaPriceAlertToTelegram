@@ -3,13 +3,11 @@ object DataModule1: TDataModule1
   Height = 274
   Width = 380
   object FDConnection1: TFDConnection
-    ConnectionName = 'wb'
     Params.Strings = (
       
-        'Database=C:\Users\admin\Documents\Wildberries\Win32\Debug\wildbe' +
-        'rries.db'
+        'Database=C:\Users\admin\Documents\WildberriesUaPriceAlertToTeleg' +
+        'ram\Win32\Debug\wildberries.db'
       'DriverID=SQLite')
-    Connected = True
     LoginPrompt = False
     Left = 56
     Top = 24

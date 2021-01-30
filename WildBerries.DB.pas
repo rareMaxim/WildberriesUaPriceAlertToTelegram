@@ -19,11 +19,13 @@ type
     { Private declarations }
   public
     { Public declarations }
+
     procedure UpdateProduct(AProd: TwbProductItem);
     function IsAvaibleProduct(AProd: TwbProductItem): Boolean;
     procedure AddProduct(AProd: TwbProductItem);
     procedure AddPrice(AProd: TwbProductItem);
     function LastPrice(AID: Integer): Integer;
+    constructor Create(AOwner: TComponent); override;
   end;
 
 var
@@ -66,6 +68,7 @@ const
 var
   lQuery: TFDQuery;
 begin
+
   lQuery := TFDQuery.Create(nil);
   try
     lQuery.Connection := FDConnection1;
@@ -91,6 +94,12 @@ begin
     lQuery.Free;
   end;
 
+end;
+
+constructor TDataModule1.Create(AOwner: TComponent);
+begin
+  inherited;
+  FDConnection1.Params.Database := 'wildberries.db';
 end;
 
 function TDataModule1.IsAvaibleProduct(AProd: TwbProductItem): Boolean;

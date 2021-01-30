@@ -1,0 +1,48 @@
+﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+    <PropertyGroup>
+        <ProjectGuid>{540A0158-2F16-423D-AE2D-FA99F3E63EA9}</ProjectGuid>
+    </PropertyGroup>
+    <ItemGroup>
+        <Projects Include="Wildberries\WildberriesAPI.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="WbCrowlerUA.dproj">
+            <Dependencies/>
+        </Projects>
+    </ItemGroup>
+    <ProjectExtensions>
+        <Borland.Personality>Default.Personality.12</Borland.Personality>
+        <Borland.ProjectType/>
+        <BorlandProject>
+            <Default.Personality/>
+        </BorlandProject>
+    </ProjectExtensions>
+    <Target Name="WildberriesAPI">
+        <MSBuild Projects="Wildberries\WildberriesAPI.dproj"/>
+    </Target>
+    <Target Name="WildberriesAPI:Clean">
+        <MSBuild Projects="Wildberries\WildberriesAPI.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="WildberriesAPI:Make">
+        <MSBuild Projects="Wildberries\WildberriesAPI.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="WbCrowlerUA">
+        <MSBuild Projects="WbCrowlerUA.dproj"/>
+    </Target>
+    <Target Name="WbCrowlerUA:Clean">
+        <MSBuild Projects="WbCrowlerUA.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="WbCrowlerUA:Make">
+        <MSBuild Projects="WbCrowlerUA.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="Build">
+        <CallTarget Targets="WildberriesAPI;WbCrowlerUA"/>
+    </Target>
+    <Target Name="Clean">
+        <CallTarget Targets="WildberriesAPI:Clean;WbCrowlerUA:Clean"/>
+    </Target>
+    <Target Name="Make">
+        <CallTarget Targets="WildberriesAPI:Make;WbCrowlerUA:Make"/>
+    </Target>
+    <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
+</Project>
