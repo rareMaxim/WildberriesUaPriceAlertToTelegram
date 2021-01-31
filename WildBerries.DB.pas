@@ -114,7 +114,8 @@ begin
   lQuery := TFDQuery.Create(nil);
   try
     lQuery.Connection := FDConnection1;
-    lQuery.SQL.Text := 'SELECT * FROM `product` WHERE `ID`="' + AProd.ID.ToString + '" LIMIT 1';
+    lQuery.SQL.Text := 'SELECT * FROM `product` WHERE `ID`=:ID LIMIT 1';
+    lQuery.ParamByName('ID').AsInteger := AProd.ID;
     lQuery.Active := True;
     Result := not lQuery.IsEmpty;
   finally
@@ -165,13 +166,11 @@ begin
     AddPrice(AProd);
   end;
   lLastPrice := LastPrice(AProd.ID);
-  if lLastPrice > 0 then
-    if lLastPrice <> AProd.SalePriceU then
-    begin
-      AddPrice(AProd);
-      Writeln('НОВАЯ ЦЕНА: ' + AProd.Name + ' ' + AProd.Brand + ' ' + AProd.SalePriceU.ToString);
-      ReportNewPrice(AProd, AProd.SalePriceU, lLastPrice);
-    end;
+  if (lLastPrice > 0) and (lLastPrice <> AProd.SalePriceU) then
+  begin
+    AddPrice(AProd);
+    ReportNewPrice(AProd, AProd.SalePriceU, lLastPrice);
+  end;
 end;
 
 end.
