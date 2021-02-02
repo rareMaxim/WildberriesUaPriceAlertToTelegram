@@ -32,8 +32,8 @@ type
     fTg: TTelegramBotApi;
   protected
     procedure ReportNewPrice(AProd: TwbProductItem; AOldPrice: Integer);
-    procedure WriteMenu(ANodes: TObjectList<TwbMenuItem>; APrefixLength: Integer; const AMenuPath: string);
-    procedure WritePrice(ANode: TwbMenuItem; const AMenuPath: string);
+    procedure WriteMenu(ANodes: TObjectList<TwbMenuItem>; APrefixLength: Integer; const AMenuPath: TArray<string>);
+    procedure WritePrice(ANode: TwbMenuItem; const AMenuPath: TArray<string>);
   public
     procedure ReadConfig;
     procedure OpenMenu;
@@ -94,7 +94,7 @@ begin
     lMsg.ParseMode := TtgParseMode.HTML;
     lMsg.Text := //
       AProd.Name + ' <a href="' + fWb.GetProductImages(AProd)[0] + '">' + AProd.Brand + '</a>' + sLineBreak + //
-      '<i>' + AProd.MenuPath + '</i>' + sLineBreak + //
+      '<i>' + string.Join(' ', AProd.MenuPath) + '</i>' + sLineBreak + //
       'Старая цена: ' + (AOldPrice / 100).ToString + sLineBreak + //
       'Новая цена: ' + (AProd.SalePriceU / 100).ToString + sLineBreak + //
       'https://wildberries.ua/product?card=' + AProd.ID.ToString + //
@@ -110,7 +110,7 @@ begin
   end;
 end;
 
-procedure TwbCore.WriteMenu(ANodes: TObjectList<TwbMenuItem>; APrefixLength: Integer; const AMenuPath: string);
+procedure TwbCore.WriteMenu(ANodes: TObjectList<TwbMenuItem>; APrefixLength: Integer; const AMenuPath: TArray<string>);
 var
   I: Integer;
   lPrefix: string;
@@ -121,7 +121,7 @@ begin
   begin
     Writeln(lPrefix + ' ' + ANodes[I].Name + ' - ' + ANodes[I].ShardKey);
     if ANodes[I].Nodes.Count > 0 then
-      WriteMenu(ANodes[I].Nodes, APrefixLength + 1, string.Join(' #', [AMenuPath, ANodes[I].Name]))
+      WriteMenu(ANodes[I].Nodes, APrefixLength + 1, AMenuPath + ['#' + ANodes[I].Name.Replace(' ', '_')])
     else
     begin
       WritePrice(ANodes[I], AMenuPath);
@@ -129,7 +129,7 @@ begin
   end;
 end;
 
-procedure TwbCore.WritePrice(ANode: TwbMenuItem; const AMenuPath: string);
+procedure TwbCore.WritePrice(ANode: TwbMenuItem; const AMenuPath: TArray<string>);
 var
   lCatalog: TwbProducts;
   lFilters: TwbFilters;
@@ -144,6 +144,7 @@ begin
     Exit;
   try
     lCursor := 0;
+    lCatalog := nil;
     while lCursor * 100 <= lFilters.Total do
     begin
       Inc(lCursor);
@@ -186,7 +187,7 @@ begin
     begin
       lWB.ReadConfig;
       lWB.OpenMenu;
-      lWB.WriteMenu(lWB.Menu, 0, '');
+      lWB.WriteMenu(lWB.Menu, 0, []);
     end;
   finally
     lWB.Free;
