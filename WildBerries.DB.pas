@@ -18,9 +18,9 @@ type
   private
 
     { Private declarations }
-    fOnNewPrice: TProc<TwbProductItem, Integer, Integer>;
+    fOnNewPrice: TProc<TwbProductItem, Integer>;
   protected
-    procedure ReportNewPrice(AProd: TwbProductItem; NewPrice, OldPrice: Integer);
+    procedure ReportNewPrice(AProd: TwbProductItem; const OldPrice: Integer);
   public
     { Public declarations }
 
@@ -30,7 +30,7 @@ type
     procedure AddPrice(AProd: TwbProductItem);
     function LastPrice(AID: Integer): Integer;
     constructor Create(AOwner: TComponent); override;
-    property OnNewPrice: TProc<TwbProductItem, Integer, Integer> read fOnNewPrice write fOnNewPrice;
+    property OnNewPrice: TProc<TwbProductItem, Integer> read fOnNewPrice write fOnNewPrice;
   end;
 
 var
@@ -148,10 +148,10 @@ begin
 
 end;
 
-procedure TDataModule1.ReportNewPrice(AProd: TwbProductItem; NewPrice, OldPrice: Integer);
+procedure TDataModule1.ReportNewPrice(AProd: TwbProductItem; const OldPrice: Integer);
 begin
   if Assigned(fOnNewPrice) then
-    fOnNewPrice(AProd, NewPrice, OldPrice);
+    fOnNewPrice(AProd, OldPrice);
 end;
 
 procedure TDataModule1.UpdateProduct(AProd: TwbProductItem);
@@ -169,7 +169,7 @@ begin
   if (lLastPrice > 0) and (lLastPrice <> AProd.SalePriceU) then
   begin
     AddPrice(AProd);
-    ReportNewPrice(AProd, AProd.SalePriceU, lLastPrice);
+    ReportNewPrice(AProd, lLastPrice);
   end;
 end;
 

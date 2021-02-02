@@ -31,9 +31,9 @@ type
     FDB: TDataModule1;
     fTg: TTelegramBotApi;
   protected
-    procedure ReportNewPrice(AProd: TwbProductItem; NewPrice, OldPrice: Integer);
-    procedure WriteMenu(ANodes: TObjectList<TwbMenuItem>; APrefixLength: Integer);
-    procedure WritePrice(ANode: TwbMenuItem);
+    procedure ReportNewPrice(AProd: TwbProductItem; AOldPrice: Integer);
+    procedure WriteMenu(ANodes: TObjectList<TwbMenuItem>; APrefixLength: Integer; const AMenuPath: string);
+    procedure WritePrice(ANode: TwbMenuItem; const AMenuPath: string);
   public
     procedure ReadConfig;
     procedure OpenMenu;
@@ -49,6 +49,12 @@ constructor TwbCore.Create;
 begin
   fMenu := TObjectList<TwbMenuItem>.Create;
   fWb := TWildBerriesClient.Create;
+  fWb.CloudAPI.ExceptionManager.AlertEvent := True;
+  fWb.CloudAPI.ExceptionManager.OnAlert := procedure(E: ECloudApiException)
+    begin
+      Writeln(E.ToString);
+    end;
+
   FDB := TDataModule1.Create(nil);
   FDB.OnNewPrice := ReportNewPrice;
 
@@ -77,7 +83,7 @@ begin
   fWb.GetConfiguration;
 end;
 
-procedure TwbCore.ReportNewPrice(AProd: TwbProductItem; NewPrice, OldPrice: Integer);
+procedure TwbCore.ReportNewPrice(AProd: TwbProductItem; AOldPrice: Integer);
 var
   lMsg: TtgMessageArgument;
 begin
@@ -88,8 +94,9 @@ begin
     lMsg.ParseMode := TtgParseMode.HTML;
     lMsg.Text := //
       AProd.Name + ' <a href="' + fWb.GetProductImages(AProd)[0] + '">' + AProd.Brand + '</a>' + sLineBreak + //
-      'Старая цена: ' + (OldPrice / 100).ToString + sLineBreak + //
-      'Новая цена: ' + (NewPrice / 100).ToString + sLineBreak + //
+      '<i>' + AProd.MenuPath + '</i>' + sLineBreak + //
+      'Старая цена: ' + (AOldPrice / 100).ToString + sLineBreak + //
+      'Новая цена: ' + (AProd.SalePriceU / 100).ToString + sLineBreak + //
       'https://wildberries.ua/product?card=' + AProd.ID.ToString + //
     { } '';
     try
@@ -103,7 +110,7 @@ begin
   end;
 end;
 
-procedure TwbCore.WriteMenu(ANodes: TObjectList<TwbMenuItem>; APrefixLength: Integer);
+procedure TwbCore.WriteMenu(ANodes: TObjectList<TwbMenuItem>; APrefixLength: Integer; const AMenuPath: string);
 var
   I: Integer;
   lPrefix: string;
@@ -114,15 +121,15 @@ begin
   begin
     Writeln(lPrefix + ' ' + ANodes[I].Name + ' - ' + ANodes[I].ShardKey);
     if ANodes[I].Nodes.Count > 0 then
-      WriteMenu(ANodes[I].Nodes, APrefixLength + 1)
+      WriteMenu(ANodes[I].Nodes, APrefixLength + 1, string.Join(' #', [AMenuPath, ANodes[I].Name]))
     else
     begin
-      WritePrice(ANodes[I]);
+      WritePrice(ANodes[I], AMenuPath);
     end;
   end;
 end;
 
-procedure TwbCore.WritePrice(ANode: TwbMenuItem);
+procedure TwbCore.WritePrice(ANode: TwbMenuItem; const AMenuPath: string);
 var
   lCatalog: TwbProducts;
   lFilters: TwbFilters;
@@ -133,6 +140,8 @@ const
 begin
   // if not FILTER.Contains(ANode.Name) then Exit;
   lFilters := fWb.GetFilters(ANode);
+  if lFilters = nil then
+    Exit;
   try
     lCursor := 0;
     while lCursor * 100 <= lFilters.Total do
@@ -140,11 +149,14 @@ begin
       Inc(lCursor);
       try
         lCatalog := fWb.OpenCatalog(ANode, 100, lCursor, 'popular');
+        if not Assigned(lCatalog) then
+          Continue;
         try
           for I := 0 to lCatalog.Products.Count - 1 do
           begin
             SetConsoleTitle(PWideChar(ANode.Name + ': ' + (I).ToString + '/' + (lCursor * 100).ToString + '/' +
               lFilters.Total.ToString));
+            lCatalog.Products[I].MenuPath := AMenuPath;
             FDB.UpdateProduct(lCatalog.Products[I]);
           end;
         except
@@ -174,7 +186,7 @@ begin
     begin
       lWB.ReadConfig;
       lWB.OpenMenu;
-      lWB.WriteMenu(lWB.Menu, 0);
+      lWB.WriteMenu(lWB.Menu, 0, '');
     end;
   finally
     lWB.Free;
