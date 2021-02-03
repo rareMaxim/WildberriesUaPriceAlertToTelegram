@@ -14,7 +14,6 @@ object DataModule1: TDataModule1
   end
   object FDPhysSQLiteDriverLink1: TFDPhysSQLiteDriverLink
     VendorLib = 'sqlite3.dll'
-    EngineLinkage = slDynamic
     Left = 176
     Top = 120
   end
